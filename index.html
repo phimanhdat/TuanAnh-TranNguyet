@@ -52,8 +52,8 @@
         };
 
     </script>
-    <link rel="canonical" href="https://thiep-cuoi-mdat.online/TuanAnh-TranNguyet/" />
-    <meta property="og:url" content="https://thiep-cuoi-mdat.online/TuanAnh-TranNguyet/" />
+    <link rel="canonical" href="" />
+    <meta property="og:url" content="" />
     <meta property="og:title" content="LỄ CƯỚI TUẤN ANH  VÀ TRẦN NGUYỆT" />
     <meta property="og:type" content="website" />
     <meta property="og:image" content="https://sf-static.upanhlaylink.com/img/image_202602087a8d74d32513c3a42d321632fd6a2832.jpg">
@@ -7413,9 +7413,149 @@
 
     </script>
 
-    <audio id="bgMusic" preload="auto" loop="">
-        <source src="https://raw.githubusercontent.com/phimanhdat/Manh-Dat/main/minhanh.mp3" type="audio/mpeg">
-    </audio>
+    <script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    /* =========================
+       CẤU HÌNH API
+    ========================== */
+    // Thay đổi đường dẫn đúng với host của bạn
+    const API_WISH = "https://thiep-cuoi-mdat.online/TuanAnh-TranNguyet/user/save_loichuc.php";
+    const API_RSVP = "https://thiep-cuoi-mdat.online/TuanAnh-TranNguyet/user/save_rsvp.php";
+
+    /* =================================================
+       XỬ LÝ FORM 4 VÀ FORM 6 (GỬI LỜI CHÚC)
+       (Hai form này cấu trúc giống nhau: Tên + Lời chúc)
+    ================================================= */
+    const wishForms = document.querySelectorAll("#FORM4 form, #FORM6 form");
+
+    wishForms.forEach(function(form) {
+        form.addEventListener("submit", function (e) {
+            e.preventDefault();
+
+            // Lấy dữ liệu
+            const name = form.querySelector('input[name="name"]')?.value.trim();
+            const message = form.querySelector('textarea[name="message"]')?.value.trim();
+
+            if (!name || !message) {
+                alert("Vui lòng nhập đầy đủ tên và lời chúc bạn nhé!");
+                return;
+            }
+
+            // Gửi dữ liệu
+            fetch(API_WISH, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    name: name,
+                    message: message
+                })
+            })
+            .then(res => res.json())
+            .then(res => {
+                if (res.success) {
+                    alert("💖 Cảm ơn bạn! Lời chúc đã được gửi đi.");
+                    form.reset(); // Xóa trắng form sau khi gửi
+                } else {
+                    alert(res.msg || "Có lỗi xảy ra, vui lòng thử lại.");
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert("Lỗi kết nối đến máy chủ.");
+            });
+        });
+    });
+
+    /* =================================================
+       XỬ LÝ FORM 5 (RSVP - XÁC NHẬN THAM DỰ)
+       (Có: Tên, SĐT, Checkbox Có/Không, Khách của ai, Số lượng, Loại tiệc)
+    ================================================= */
+    const rsvpForm = document.querySelector("#FORM5 form");
+
+    if (rsvpForm) {
+        rsvpForm.addEventListener("submit", function (e) {
+            e.preventDefault();
+
+            // 1. Lấy thông tin cơ bản
+            const name = rsvpForm.querySelector('input[name="name"]')?.value.trim();
+            const phone = rsvpForm.querySelector('input[name="phone"]')?.value.trim();
+            const quantity = parseInt(rsvpForm.querySelector('input[name="quantity"]')?.value) || 1;
+            
+            // 2. Lấy trạng thái tham dự (Radio button name="form_item28")
+            // Giá trị trong HTML là: "Có, tôi sẽ đến" hoặc "Xin lỗi, tôi bận mất rồi"
+            const statusNode = rsvpForm.querySelector('input[name="form_item28"]:checked');
+            const statusText = statusNode ? statusNode.value : "";
+
+            // 3. Lấy thông tin dropdown (Select)
+            const guestOf = rsvpForm.querySelector('select[name="form_item30"]')?.value || ""; // Khách của
+            const eventType = rsvpForm.querySelector('select[name="form_item32"]')?.value || ""; // Tham dự tiệc nào
+
+            // Validate
+            if (!name || !statusText) {
+                alert("Vui lòng nhập tên và xác nhận sự tham gia của bạn.");
+                return;
+            }
+
+            // 4. Chuẩn hóa dữ liệu cho khớp với save_rsvp.php
+            // PHP cần: name, status (yes/no), guest (int), message (string)
+            
+            let status = "maybe";
+            if (statusText.includes("Có") || statusText.includes("đến")) {
+                status = "yes";
+            } else if (statusText.includes("Xin lỗi") || statusText.includes("bận")) {
+                status = "no";
+            }
+
+            // Vì file PHP không có cột SĐT, Khách của, Loại tiệc... 
+            // Ta sẽ gộp các thông tin này vào biến 'message' để lưu trữ được hết.
+            const fullInfoMessage = `SĐT: ${phone} | Khách: ${guestOf} | Tham dự: ${eventType} | Trạng thái gốc: ${statusText}`;
+
+            // Gửi dữ liệu
+            fetch(API_RSVP, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    name: name,
+                    status: status,
+                    guest: quantity,
+                    message: fullInfoMessage // Gửi các thông tin phụ vào đây
+                })
+            })
+            .then(res => res.json())
+            .then(res => {
+                if (res.success) {
+                    alert("🎉 Xác nhận tham dự thành công! Hẹn gặp lại bạn.");
+                    rsvpForm.reset();
+                } else {
+                    alert(res.msg || "Không gửi được xác nhận, vui lòng thử lại.");
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert("Lỗi kết nối đến máy chủ.");
+            });
+        });
+    }
+
+});
+</script>
+
+<audio id="bgMusic" preload="auto" loop>
+    <source src="https://raw.githubusercontent.com/phimanhdat/Manh-Dat/main/minhanh.mp3" type="audio/mpeg">
+</audio>
+
+<script>
+    const music = document.getElementById("bgMusic");
+    let started = false;
+
+    document.addEventListener("click", function () {
+        if (!started) {
+            music.play().catch(err => console.log(err));
+            started = true;
+        }
+    });
+</script>
 
 </body>
 
