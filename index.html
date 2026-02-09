@@ -7562,6 +7562,33 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 </script>
 
+<script>
+(function () {
+    var isMobile = /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent);
+
+    if (!isMobile) {
+        document.body.innerHTML = `
+            <div style="
+                display:flex;
+                align-items:center;
+                justify-content:center;
+                height:100vh;
+                background:#111;
+                color:#fff;
+                text-align:center;
+                font-family:Arial;
+                padding:20px;
+            ">
+                <div>
+                    <h1>📱 Chỉ hỗ trợ xem trên điện thoại</h1>
+                    <p>Vui lòng mở trang web bằng điện thoại để xem nội dung</p>
+                </div>
+            </div>
+        `;
+    }
+})();
+</script>
+    
 </body>
 
 </html>
